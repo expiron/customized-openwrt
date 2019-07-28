@@ -1,0 +1,76 @@
+
+parameters:
+  branch: master
+  kernelVersion: 4.14
+  release: SNAPSHOT
+
+jobs:
+- job:
+  displayName: ${{ format('Build OpenWRT {0}', parameters.release) }}
+  pool:
+    vmImage: Ubuntu-16.04
+  variables:
+    ConfigFilename: ${{ format('config-{0}', parameters.kernelVersion) }}
+  timeoutInMinutes: 0
+  steps:
+  - template: steps/install-dependencies.yml@templates
+
+  - script: |
+      git clone https://git.openwrt.org/openwrt/openwrt.git && cd openwrt/
+      echo "##vso[Task.SetVariable Variable=Build.OpenWRTDirectory]$(pwd)"
+      git checkout $GIT_BRANCH
+      echo "Current commit $(git rev-parse HEAD)"
+    env:
+      GIT_BRANCH: ${{ parameters.branch }}
+    displayName: Prepare sources
+    workingDirectory: $(Agent.BuildDirectory)
+
+  - template: steps/feeds-steps.yml@templates
+
+  - script: |
+      git apply --stat --apply \
+        $(Build.SourcesDirectory)/tl-wdr6500v5/01-ar71xx-add-support-for-tl-wdr6500v5.patch
+      git apply --stat --apply << \EOF
+      --- a/target/linux/ar71xx/$(ConfigFilename)
+      +++ b/target/linux/ar71xx/$(ConfigFilename)
+      @@ -217,6 +217,7 @@ CONFIG_ATH79=y
+       # CONFIG_ATH79_MACH_TL_WDR3500 is not set
+       # CONFIG_ATH79_MACH_TL_WDR4300 is not set
+       # CONFIG_ATH79_MACH_TL_WDR6500_V2 is not set
+      +# CONFIG_ATH79_MACH_TL_WDR6500_V5 is not set
+       # CONFIG_ATH79_MACH_TL_WPA8630 is not set
+       # CONFIG_ATH79_MACH_TL_WR1041N_V2 is not set
+       # CONFIG_ATH79_MACH_TL_WR1043ND is not set
+      EOF
+    displayName: Patch for TL-WDR6500 v5
+    workingDirectory: $(Build.OpenWRTDirectory)
+
+  - script: |
+      make defconfig
+      cat $(Build.SourcesDirectory)/tl-wdr6500v5/diffconfig | tee .config
+      make defconfig
+      echo "##vso[Task.UploadFile]$(pwd)/.config"
+    displayName: Generate .config file
+    workingDirectory: $(Build.OpenWRTDirectory)
+
+  - template: steps/download-build-key.yml@templates
+
+  - script: make download -j 8
+    continueOnError: true
+    displayName: Download packages
+    workingDirectory: $(Build.OpenWRTDirectory)
+
+  - script: |
+      make -j 6 'IGNORE_ERRORS=n m'
+      echo "##vso[Task.SetVariable Variable=Build.PublishPath]$(pwd)/bin"
+    continueOnError: true
+    displayName: Build
+    workingDirectory: $(Build.OpenWRTDirectory)
+
+  - template: steps/collect-build-logs.yml@templates
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish artifacts
+    inputs:
+      artifactName: ${{ format('OpenWRT-{0}', parameters.release) }}
+      pathtoPublish: $(Build.PublishPath)

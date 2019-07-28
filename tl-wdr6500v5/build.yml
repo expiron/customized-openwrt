@@ -1,0 +1,40 @@
+
+pr: none
+
+resources:
+  repositories:
+  - repository: templates
+    type: git
+    name: pipelines-templates
+
+schedules:
+- cron: 0 0 * * *
+  always: true
+  branches:
+    include:
+    - master
+  displayName: Daily build
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - tl-wdr6500v5/*
+
+jobs:
+- template: template.yml
+  parameters:
+    branch: openwrt-18.06
+    kernelVersion: 4.9
+    release: 18.06.4
+
+- template: template.yml
+  parameters:
+    branch: openwrt-19.07
+    kernelVersion: 4.14
+    release: 19.07-SNAPSHOT
+
+- template: template.yml
