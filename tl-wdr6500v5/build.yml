@@ -16,10 +16,9 @@ schedules:
   displayName: Daily build
 
 trigger:
-  batch: true
   branches:
     include:
-    - master
+    - '*'
   paths:
     include:
     - tl-wdr6500v5/*
