@@ -32,20 +32,18 @@
  	tube2h)
 --- a/target/linux/ar71xx/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
 +++ b/target/linux/ar71xx/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
-@@ -65,6 +65,13 @@ case "$FIRMWARE" in
- 		ath10kcal_extract "art" 20480 2116
- 		ath10kcal_patch_mac $(macaddr_add $(cat /sys/class/net/eth1/address) -2)
+@@ -187,6 +187,11 @@ case "$FIRMWARE" in
+ 	cf-e385ac)
+ 		ath10kcal_extract "art" 0x5000 0x2f20
  		;;
 +	tl-wdr6500-v5)
-+		ath10kcal_extract "art" 8192 12064
-+		mv /lib/firmware/ath10k/cal-pci-0000\:00\:00.0.bin \
++		ath10kcal_extract "art" 0x2000 0x2f20
++		ln -sf /lib/firmware/ath10k/pre-cal-pci-0000\:00\:00.0.bin \
 +			/lib/firmware/ath10k/QCA9888/hw2.0/board.bin
-+		ln -sf /lib/firmware/ath10k/QCA9888/hw2.0/board-2.bin \
-+			/lib/firmware/ath10k/pre-cal-pci-0000\:00\:00.0.bin
 +		;;
- 	archer-c7-v4|\
- 	archer-c7-v5)
- 		ath10kcal_extract "art" 20480 2116
+ 	esac
+ 	;;
+ *)
 --- a/target/linux/ar71xx/base-files/lib/ar71xx.sh
 +++ b/target/linux/ar71xx/base-files/lib/ar71xx.sh
 @@ -342,6 +342,9 @@ tplink_board_detect() {
@@ -86,14 +84,14 @@
 +			magic_ver="0500"
 +			;;
  		esac
- 
+
  		[ "$magic" != "$magic_ver" ] && {
 --- a/target/linux/ar71xx/files/arch/mips/ath79/Kconfig.openwrt
 +++ b/target/linux/ar71xx/files/arch/mips/ath79/Kconfig.openwrt
 @@ -1855,6 +1855,17 @@ config ATH79_MACH_TL_WDR6500_V2
  	select ATH79_DEV_USB
  	select ATH79_DEV_WMAC
- 
+
 +config ATH79_MACH_TL_WDR6500_V5
 +	bool "TP-LINK TL-WDR6500 v5 board support"
 +	select SOC_QCA956X
@@ -289,7 +287,7 @@
 @@ -352,6 +352,19 @@ define Device/tl-wdr6500-v2
  endef
  TARGET_DEVICES += tl-wdr6500-v2
- 
+
 +define Device/tl-wdr6500-v5
 +  $(Device/tplink-8mlzma)
 +  DEVICE_TITLE := TP-LINK TL-WDR6500 v5

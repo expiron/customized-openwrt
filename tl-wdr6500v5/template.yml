@@ -16,6 +16,7 @@ jobs:
   - template: steps/install-dependencies.yml@templates
 
   - script: |
+      set -e
       git clone https://git.openwrt.org/openwrt/openwrt.git && cd openwrt/
       echo "##vso[Task.SetVariable Variable=Build.OpenWRTDirectory]$(pwd)"
       git checkout $GIT_BRANCH
@@ -28,8 +29,9 @@ jobs:
   - template: steps/feeds-steps.yml@templates
 
   - script: |
+      set -e
       git apply --stat --apply \
-        $(Build.SourcesDirectory)/tl-wdr6500v5/01-ar71xx-add-support-for-tl-wdr6500v5.patch
+        $(Build.SourcesDirectory)/tl-wdr6500v5/01-ar71xx-add-support-for-tl-wdr6500v5-$GIT_BRANCH.patch
       git apply --stat --apply << \EOF
       --- a/target/linux/ar71xx/$(ConfigFilename)
       +++ b/target/linux/ar71xx/$(ConfigFilename)
@@ -42,6 +44,8 @@ jobs:
        # CONFIG_ATH79_MACH_TL_WR1041N_V2 is not set
        # CONFIG_ATH79_MACH_TL_WR1043ND is not set
       EOF
+    env:
+      GIT_BRANCH: ${{ parameters.branch }}
     displayName: Patch for TL-WDR6500 v5
     workingDirectory: $(Build.OpenWRTDirectory)
 
