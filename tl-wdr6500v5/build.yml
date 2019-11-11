@@ -28,7 +28,7 @@ jobs:
   parameters:
     branch: openwrt-18.06
     kernelVersion: 4.9
-    release: 18.06.4
+    release: 18.06.5
 
 - template: template.yml
   parameters:

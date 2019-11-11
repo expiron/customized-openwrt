@@ -77,7 +77,7 @@
  	tl-wr1041n-v2|\
  	tl-wr1043nd|\
 @@ -502,6 +503,9 @@ platform_check_image() {
- 		tl-wdr6500-v2)
+ 		tl-wdr3320-v2|tl-wdr6500-v2)
  			magic_ver="0200"
  			;;
 +		tl-wdr6500-v5)
