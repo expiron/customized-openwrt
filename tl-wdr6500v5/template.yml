@@ -59,13 +59,13 @@ jobs:
 
   - template: steps/download-build-key.yml@templates
 
-  - script: make download -j 8
+  - script: make download -j
     continueOnError: true
     displayName: Download packages
     workingDirectory: $(Build.OpenWRTDirectory)
 
   - script: |
-      make -j 6 'IGNORE_ERRORS=n m'
+      make -j 'IGNORE_ERRORS=n m'
       echo "##vso[Task.SetVariable Variable=Build.PublishPath]$(pwd)/bin"
     continueOnError: true
     displayName: Build
