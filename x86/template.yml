@@ -1,0 +1,56 @@
+
+parameters:
+  branch: master
+  release: SNAPSHOT
+
+jobs:
+- job:
+  displayName: ${{ format('Build OpenWRT {0}', parameters.release) }}
+  pool:
+    vmImage: Ubuntu-Latest
+  timeoutInMinutes: 0
+  steps:
+  - template: steps/install-dependencies.yml@templates
+
+  - script: |
+      set -e
+      git clone https://git.openwrt.org/openwrt/openwrt.git && cd openwrt/
+      echo "##vso[Task.SetVariable Variable=Build.OpenWRTDirectory]$(pwd)"
+      git checkout $GIT_BRANCH
+      echo "Current commit $(git rev-parse HEAD)"
+    env:
+      GIT_BRANCH: ${{ parameters.branch }}
+    displayName: Prepare sources
+    workingDirectory: $(Agent.BuildDirectory)
+
+  - template: steps/feeds-steps.yml@templates
+
+  - script: |
+      make defconfig
+      cat $(Build.SourcesDirectory)/x86/diffconfig | tee .config
+      make defconfig
+      echo "##vso[Task.UploadFile]$(pwd)/.config"
+    displayName: Generate .config file
+    workingDirectory: $(Build.OpenWRTDirectory)
+
+  - template: steps/download-build-key.yml@templates
+
+  - script: make download -j 8
+    continueOnError: true
+    displayName: Download packages
+    workingDirectory: $(Build.OpenWRTDirectory)
+
+  - script: |
+      make -j 6 'IGNORE_ERRORS=n m'
+      echo "##vso[Task.SetVariable Variable=Build.PublishPath]$(pwd)/bin"
+    continueOnError: true
+    displayName: Build
+    workingDirectory: $(Build.OpenWRTDirectory)
+
+  - template: steps/collect-build-logs.yml@templates
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish artifacts
+    inputs:
+      artifactName: ${{ format('OpenWRT-{0}', parameters.release) }}
+      pathtoPublish: $(Build.PublishPath)

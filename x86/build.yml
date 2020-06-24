@@ -1,0 +1,32 @@
+
+pr: none
+
+resources:
+  repositories:
+  - repository: templates
+    type: git
+    name: pipelines-templates
+
+schedules:
+- cron: 0 0 * * *
+  always: true
+  branches:
+    include:
+    - master
+  displayName: Daily build
+
+trigger:
+  branches:
+    include:
+    - '*'
+  paths:
+    include:
+    - x86/*
+
+jobs:
+- template: template.yml
+  parameters:
+    branch: openwrt-19.07
+    release: 19.07
+
+- template: template.yml
