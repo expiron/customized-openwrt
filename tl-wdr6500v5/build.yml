@@ -26,14 +26,8 @@ trigger:
 jobs:
 - template: template.yml
   parameters:
-    branch: openwrt-18.06
-    kernelVersion: 4.9
-    release: 18.06.5
-
-- template: template.yml
-  parameters:
     branch: openwrt-19.07
     kernelVersion: 4.14
-    release: 19.07-SNAPSHOT
+    release: 19.07
 
 - template: template.yml

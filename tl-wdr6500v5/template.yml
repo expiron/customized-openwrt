@@ -8,7 +8,7 @@ jobs:
 - job:
   displayName: ${{ format('Build OpenWRT {0}', parameters.release) }}
   pool:
-    vmImage: Ubuntu-18.04
+    vmImage: Ubuntu-Latest
   variables:
     ConfigFilename: ${{ format('config-{0}', parameters.kernelVersion) }}
   timeoutInMinutes: 0
