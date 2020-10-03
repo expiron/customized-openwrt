@@ -29,5 +29,3 @@ jobs:
     branch: openwrt-19.07
     kernelVersion: 4.14
     release: 19.07
-
-- template: template.yml
